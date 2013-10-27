@@ -1,0 +1,20 @@
+For some targets the 115200 baudrate can cause communication
+problems. The effective baudrate is not exactly as specified.
+
+  make lilypad
+  BAUD RATE CHECK: Desired: 115200, Real: 111111, UBRRL = 8, Error=3.5%
+
+  make atmega328
+  BAUD RATE CHECK: Desired: 115200, Real: 117647, UBRRL = 16, Error=-2.1%
+
+You can override the 115200 default with the BAUD_RATE=
+command line variable.
+
+  make BAUD_RATE=57600 lilypad
+  BAUD RATE CHECK: Desired: 57600, Real: 58823, UBRRL = 16, Error=-2.1%
+
+  make BAUD_RATE=38400 lilypad
+  BAUD RATE CHECK: Desired: 38400, Real: 38461, UBRRL = 25, Error=0.1%
+
+  make BAUD_RATE=38400 atmega328
+  BAUD RATE CHECK: Desired: 38400, Real: 38461, UBRRL = 51, Error=0.1%

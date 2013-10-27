@@ -617,6 +617,7 @@ FORCE:
 baudcheck: FORCE
 	- @$(CC) $(CFLAGS) -E baudcheck.c -o baudcheck.tmp.sh
 	- @bash baudcheck.tmp.sh
+	- @rm -f baudcheck.tmp.sh
 
 isp: $(TARGET)
 	$(MAKE) -f Makefile.isp isp TARGET=$(TARGET)
