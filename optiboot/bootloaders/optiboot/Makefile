@@ -90,8 +90,16 @@ GCCROOT = $(TOOLROOT)/avr/bin/
 AVRDUDE_CONF = -C$(TOOLROOT)/avr/etc/avrdude.conf
 
 else
+# Other ENV, not arduino, not arduinodev
+# Use the default PATH, unless ARDUINOROOT is set
+ifdef ARDUINOROOT
+GCCROOT = $(ARDUINOROOT)/hardware/tools/avr/bin/
+AVRDUDE_CONF = $(ARDUINOROOT)/hardware/tools/avrdude.conf
+else
 GCCROOT =
 AVRDUDE_CONF =
+endif
+
 endif
 
 STK500 = "C:\Program Files\Atmel\AVR Tools\STK500\Stk500.exe"
