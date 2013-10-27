@@ -1,0 +1,24 @@
+In case you're on a Linux system (who isn't?) and if that system
+has GNU make 3.81 (or 3.82) installed you'll be running into a
+bug of GNU make.
+
+The bug is that "conditional variable assigment" get corrupted
+text if the variable is also set on the commandline.  Try it for
+yourself with this Makefile
+test: var ?= foo
+
+test:
+	echo $(var)
+Run the command "make var=hello".  If it echoes 
+echo hello
+hello
+then you're alright.  If you see strange characters, you need a
+newer make.
+
+The bug was solved somewhere in 2010, but in 2013 still most Linux
+systems were still using make 3.81.  Strangely enough the bug is not
+present on MacOS (or Windows), although it is the same version.
+
+And there another note about this bug.  Originally it was reported
+on Savannah as bug #31743.  But Savannah was compromised and that
+bug report got lost.  Today bug #31743 is about something else.

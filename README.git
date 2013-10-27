@@ -1,0 +1,13 @@
+The git repository was created as a converted clone from
+the Mercurial repository at code.google.com
+
+The steps to create the clone were:
+
+$ hg clone https://code.google.com/p/optiboot/
+$ mv optiboot optiboot-hg
+$ mkdir optiboot
+$ cd optiboot
+$ git init .
+$ hg-fast-export -r ../optiboot-hg/
+
+That's it really.
