@@ -348,6 +348,7 @@ void appStart(uint8_t rstFlags) __attribute__ ((naked));
 #define RAMSTART (0x200)
 #define NRWWSTART (0xE000)
 #elif defined(__AVR_ATmega8__) || defined(__AVR_ATmega88__)
+// FIXME.  iom8.h defines RAMSTART as 0x60
 #define RAMSTART (0x100)
 #define NRWWSTART (0x1800)
 #endif
