@@ -30,15 +30,15 @@ AVRDUDE_CONF ?= -C$(TOOLROOT)/avr/etc/avrdude.conf
 
 # These are the parameters for a usb-based STK500v2 programmer.
 # Exact type unknown.  (historical Makefile values.)
-#ISPTOOL	   = stk500v2
-#ISPPORT	   =  usb
-#ISPSPEED   = -b 115200
+#ISPTOOL  = stk500v2
+#ISPPORT  =  usb
+#ISPSPEED = -b 115200
 #
 #
 # These are parameters for using an Arduino with the ArduinoISP sketch
 #  as the programmer.  On a mac, for a particular Uno as programmer.
-ISPTOOL	?= stk500v1
-ISPPORT	?= /dev/tty.usbmodemfd3141 
+ISPTOOL  ?= stk500v1
+ISPPORT  ?= /dev/tty.usbmodemfd3141
 ISPSPEED ?= -b19200
 
 

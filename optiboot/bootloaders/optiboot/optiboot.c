@@ -127,7 +127,7 @@
 /* one hardware uart (644P, 1284P, etc)                   */
 /*                                                        */
 /**********************************************************/
-
+
 /**********************************************************/
 /* Version Numbers!                                       */
 /*                                                        */
@@ -149,8 +149,8 @@
 /**********************************************************/
 
 /**********************************************************/
-/* Edit History:					  */
-/*							  */
+/* Edit History:                                          */
+/*                                                        */
 /* Mar 2013                                               */
 /* 5.0 WestfW: Major Makefile restructuring.              */
 /*             See Makefile and pin_defs.h                */
@@ -159,7 +159,7 @@
 /* 4.6 WestfW/Pito: Add ATmega32 support                  */
 /* 4.6 WestfW/radoni: Don't set LED_PIN as an output if   */
 /*                    not used. (LED_START_FLASHES = 0)   */
-/* Jan 2013						  */
+/* Jan 2013                                               */
 /* 4.6 WestfW/dkinzer: use autoincrement lpm for read     */
 /* 4.6 WestfW/dkinzer: pass reset cause to app in R2      */
 /* Mar 2012                                               */
@@ -190,7 +190,7 @@
 /*  http://code.google.com/p/arduino/issues/detail?id=368n*/
 /* 4.2 WestfW: reduce code size, fix timeouts, change     */
 /*             verifySpace to use WDT instead of appstart */
-/* 4.1 WestfW: put version number in binary.		  */
+/* 4.1 WestfW: put version number in binary.              */
 /**********************************************************/
 
 #define OPTIBOOT_MAJVER 5
@@ -202,7 +202,7 @@
 asm("  .section .version\n"
     "optiboot_version:  .word " MAKEVER(OPTIBOOT_MAJVER, OPTIBOOT_MINVER) "\n"
     "  .section .text\n");
-
+
 #include <inttypes.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
@@ -271,10 +271,10 @@ asm("  .section .version\n"
 #endif
 #else // 0
 #if (F_CPU + BAUD_RATE * 4L) / (BAUD_RATE * 8L) - 1 > 250
-#error Unachievable baud rate (too slow) BAUD_RATE 
+#error Unachievable baud rate (too slow) BAUD_RATE
 #endif // baud rate slow check
 #if (F_CPU + BAUD_RATE * 4L) / (BAUD_RATE * 8L) - 1 < 3
-#error Unachievable baud rate (too fast) BAUD_RATE 
+#error Unachievable baud rate (too fast) BAUD_RATE
 #endif // baud rate fastn check
 #endif
 
@@ -479,18 +479,18 @@ int main(void) {
       unsigned char which = getch();
       verifySpace();
       if (which == 0x82) {
-	/*
-	 * Send optiboot version as "minor SW version"
-	 */
-	putch(OPTIBOOT_MINVER);
+        /*
+         * Send optiboot version as "minor SW version"
+         */
+        putch(OPTIBOOT_MINVER);
       } else if (which == 0x81) {
-	  putch(OPTIBOOT_MAJVER);
+          putch(OPTIBOOT_MAJVER);
       } else {
-	/*
-	 * GET PARAMETER returns a generic 0x03 reply for
+        /*
+         * GET PARAMETER returns a generic 0x03 reply for
          * other parameters - enough to keep Avrdude happy
-	 */
-	putch(0x03);
+         */
+        putch(0x03);
       }
     }
     else if(ch == STK_SET_DEVICE) {
@@ -525,7 +525,7 @@ int main(void) {
       uint8_t *bufPtr;
       uint16_t addrPtr;
 
-      getch();			/* getlen() */
+      getch();                  /* getlen() */
       length = getch();
       getch();
 
@@ -594,7 +594,7 @@ int main(void) {
     /* Read memory block mode, length is big endian.  */
     else if(ch == STK_READ_PAGE) {
       // READ PAGE - we only read flash
-      getch();			/* getlen() */
+      getch();                  /* getlen() */
       length = getch();
       getch();
 
@@ -723,7 +723,7 @@ uint8_t getch(void) {
        */
     watchdogReset();
   }
-  
+
   ch = UART_UDR;
 #endif
 
@@ -765,8 +765,8 @@ void getNch(uint8_t count) {
 void verifySpace() {
   if (getch() != CRC_EOP) {
     watchdogConfig(WATCHDOG_16MS);    // shorten WD timeout
-    while (1)			      // and busy-loop so that WD causes
-      ;				      //  a reset and app start.
+    while (1)                         // and busy-loop so that WD causes
+      ;                               //  a reset and app start.
   }
   putch(STK_INSYNC);
 }

@@ -113,7 +113,7 @@ STK500-2 = $(STK500) -d$(MCU_TARGET) -ms -q -lCF -LCF -cUSB -I200kHz -s -wt
 OBJ        = $(PROGRAM).o
 OPTIMIZE = -Os -fno-inline-small-functions -fno-split-wide-types -mshort-calls
 
-DEFS       = 
+DEFS       =
 LIBS       =
 
 CC         = $(GCCROOT)avr-gcc
@@ -233,7 +233,7 @@ virboot328: $(PROGRAM)_atmega328.lst
 atmega168: TARGET = atmega168
 atmega168: MCU_TARGET = atmega168
 atmega168: CFLAGS += $(COMMON_OPTIONS)
-atmega168: AVR_FREQ ?= 16000000L 
+atmega168: AVR_FREQ ?= 16000000L
 atmega168: $(PROGRAM)_atmega168.hex
 atmega168: $(PROGRAM)_atmega168.lst
 
@@ -311,7 +311,7 @@ atmega1280: $(PROGRAM)_atmega1280.lst
 atmega8: TARGET = atmega8
 atmega8: MCU_TARGET = atmega8
 atmega8: CFLAGS += $(COMMON_OPTIONS)
-atmega8: AVR_FREQ ?= 16000000L 
+atmega8: AVR_FREQ ?= 16000000L
 atmega8: LDSECTIONS  = -Wl,--section-start=.text=0x1e00 -Wl,--section-start=.version=0x1ffe
 atmega8: $(PROGRAM)_atmega8.hex
 atmega8: $(PROGRAM)_atmega8.lst
@@ -330,7 +330,7 @@ atmega8_isp: isp
 atmega88: TARGET = atmega88
 atmega88: MCU_TARGET = atmega88
 atmega88: CFLAGS += $(COMMON_OPTIONS)
-atmega88: AVR_FREQ ?= 16000000L 
+atmega88: AVR_FREQ ?= 16000000L
 atmega88: LDSECTIONS  = -Wl,--section-start=.text=0x1e00 -Wl,--section-start=.version=0x1ffe
 atmega88: $(PROGRAM)_atmega88.hex
 atmega88: $(PROGRAM)_atmega88.lst

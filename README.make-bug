@@ -9,7 +9,7 @@ yourself with this Makefile
 
 	test:
 		echo $(var)
-Run the command "make var=hello".  If it echoes 
+Run the command "make var=hello".  If it echoes
 	echo hello
 	hello
 then you're alright.  If you see strange characters, you need a
