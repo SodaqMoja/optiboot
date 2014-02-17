@@ -2,11 +2,11 @@ To create a bootloader for Sodaq Moja use the following
 command:
 
 $ cd optiboot/bootloaders/optiboot
-$ make BAUD_RATE=38400 atmega328_pro8
+$ make BAUD_RATE=57600 atmega328_pro8
 
 This creates the following two files:
-optiboot_atmega328_pro_8MHz_baud38400.hex
-optiboot_atmega328_pro_8MHz_baud38400.lst
+optiboot_atmega328_pro_8MHz_baud57600.hex
+optiboot_atmega328_pro_8MHz_baud57600.lst
 
 You can place this two files in your Arduino installation
 in this directory:
@@ -20,14 +20,14 @@ SodaqMoja.name=Sodaq Moja
 
 SodaqMoja.upload.protocol=arduino
 SodaqMoja.upload.maximum_size=32256
-SodaqMoja.upload.speed=38400
+SodaqMoja.upload.speed=57600
 SodaqMoja.upload.disable_flushing=true
 
 SodaqMoja.bootloader.low_fuses=0xff
 SodaqMoja.bootloader.high_fuses=0xde
 SodaqMoja.bootloader.extended_fuses=0x05
 SodaqMoja.bootloader.path=optiboot
-SodaqMoja.bootloader.file=optiboot_atmega328_pro_8MHz_baud38400.hex
+SodaqMoja.bootloader.file=optiboot_atmega328_pro_8MHz_baud57600.hex
 SodaqMoja.bootloader.unlock_bits=0x3F
 SodaqMoja.bootloader.lock_bits=0x0F
 
