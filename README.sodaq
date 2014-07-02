@@ -1,8 +1,7 @@
 To create a bootloader for Sodaq Moja use the following
 command:
 
-$ cd optiboot/bootloaders/optiboot
-$ make BAUD_RATE=57600 atmega328_pro8
+$ make -C optiboot BAUD_RATE=57600 clean atmega328_pro8
 
 This creates the following two files:
 optiboot_atmega328_pro_8MHz_baud57600.hex
