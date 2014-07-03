@@ -195,12 +195,17 @@
 #define OPTIBOOT_MAJVER 5
 #define OPTIBOOT_MINVER 0
 
-#define MAKESTR(a) #a
-#define MAKEVER(a, b) MAKESTR(a*256+b)
+/*
+ * OPTIBOOT_CUSTOMVER should be defined (by the makefile) for custom edits
+ * of optiboot.  That way you don't wind up with very different code that
+ * matches the version number of a "released" optiboot.
+ */
 
-asm("  .section .version\n"
-    "optiboot_version:  .word " MAKEVER(OPTIBOOT_MAJVER, OPTIBOOT_MINVER) "\n"
-    "  .section .text\n");
+#if !defined(OPTIBOOT_CUSTOMVER)
+#define OPTIBOOT_CUSTOMVER 0
+#endif
+
+unsigned int __attribute__((section(".version"))) optiboot_version = 256*OPTIBOOT_MAJVER + OPTIBOOT_MINVER + OPTIBOOT_CUSTOMVER;
 
 #include <inttypes.h>
 #include <avr/io.h>
