@@ -211,14 +211,26 @@ unsigned int __attribute__((section(".version"))) optiboot_version = 256*OPTIBOO
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 
-// <avr/boot.h> uses sts instructions, but this version uses out instructions
-// This saves cycles and program memory.
+/*
+ * Note that we use our own version of "boot.h"
+ * <avr/boot.h> uses sts instructions, but this version uses out instructions
+ * This saves cycles and program memory.  Sorry for the name overlap.
+ */
 #include "boot.h"
 
 
 // We don't use <avr/wdt.h> as those routines have interrupt overhead we don't need.
 
+/*
+ * pin_defs.h
+ * This contains most of the rather ugly defines that implement our
+ * ability to use UART=n and LED=D3, and some avr family bit name differences.
+ */
 #include "pin_defs.h"
+
+/*
+ * stk500.h contains the constant definitions for the stk500v1 comm protocol
+ */
 #include "stk500.h"
 
 #ifndef LED_START_FLASHES
@@ -295,10 +307,13 @@ unsigned int __attribute__((section(".version"))) optiboot_version = 256*OPTIBOO
 #define WATCHDOG_8S     (_BV(WDP3) | _BV(WDP0) | _BV(WDE))
 #endif
 
-/* Function Prototypes */
-/* The main function is in init9, which removes the interrupt vector table */
-/* we don't need. It is also 'naked', which means the compiler does not    */
-/* generate any entry or exit code itself. */
+/* Function Prototypes
+ * The main() function is in init9, which removes the interrupt vector table
+ * we don't need. It is also 'OS_main', which means the compiler does not
+ * generate any entry or exit code itself (but unlike 'naked', it doesn't
+ * supress some compile-time options we want.)
+ */
+
 int main(void) __attribute__ ((OS_main)) __attribute__ ((section (".init9")));
 void putch(char);
 uint8_t getch(void);
@@ -326,7 +341,8 @@ void appStart(uint8_t rstFlags) __attribute__ ((naked));
  * space a bit, at the expense of being slightly slower, overall.
  *
  * RAMSTART should be self-explanatory.  It's bigger on parts with a
- * lot of peripheral registers.
+ * lot of peripheral registers.  Let 0x100 be the default
+ * Note that RAMSTART need not be exactly at the start of RAM.
  */
 #if defined(__AVR_ATmega168__)
 #define RAMSTART (0x100)
@@ -432,7 +448,7 @@ int main(void) {
   flash_led(LED_START_FLASHES * 2);
 #endif
 
-  /* Forever loop */
+  /* Forever loop: exits by causing WDT reset */
   for (;;) {
     /* get character from UART */
     ch = getch();
