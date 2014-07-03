@@ -149,7 +149,7 @@ else
 LED_START_FLASHES_CMD = -DLED_START_FLASHES=3
 endif
 
-# BIG_BOOT: Include extra features, up to 1K.
+# BIGBOOT: Include extra features, up to 1K.
 ifdef BIGBOOT
 BIGBOOT_CMD = -DBIGBOOT=1
 dummy = FORCE

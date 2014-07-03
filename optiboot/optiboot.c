@@ -94,7 +94,7 @@
 /*                                                        */
 /**********************************************************/
 /*                                                        */
-/* BIG_BOOT:                                              */
+/* BIGBOOT:                                               */
 /* Build a 1k bootloader, not 512 bytes. This turns on    */
 /* extra functionality.                                   */
 /*                                                        */
