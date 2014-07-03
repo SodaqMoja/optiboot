@@ -65,7 +65,15 @@ ifeq ($(ENV), arduino)
 # For Arduino, we assume that we're connected to the optiboot directory
 # included with the arduino distribution, which means that the full set
 # of avr-tools are "right up there" in standard places.
-TOOLROOT = ../../../tools
+# (except that in 1.5.x, there's an additional level of "up")
+TESTDIR := $(firstword $(wildcard ../../../tools/*))
+ifeq (,$(TESTDIR))
+# Arduino 1.5.x tool location compared to optiboot dir
+  TOOLROOT = ../../../../tools
+else
+# Arduino 1.0 (and earlier) tool location
+  TOOLROOT = ../../../tools
+endif
 GCCROOT = $(TOOLROOT)/avr/bin/
 
 ifeq ($(OS), windows)
@@ -92,16 +100,8 @@ GCCROOT = $(TOOLROOT)/avr/bin/
 AVRDUDE_CONF = -C$(TOOLROOT)/avr/etc/avrdude.conf
 
 else
-# Other ENV, not arduino, not arduinodev
-# Use the default PATH, unless ARDUINOROOT is set
-ifdef ARDUINOROOT
-GCCROOT = $(ARDUINOROOT)/hardware/tools/avr/bin/
-AVRDUDE_CONF = $(ARDUINOROOT)/hardware/tools/avrdude.conf
-else
 GCCROOT =
 AVRDUDE_CONF =
-endif
-
 endif
 
 STK500 = "C:\Program Files\Atmel\AVR Tools\STK500\Stk500.exe"
