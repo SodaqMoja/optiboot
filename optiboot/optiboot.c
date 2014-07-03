@@ -101,9 +101,6 @@
 /* BAUD_RATE:                                             */
 /* Set bootloader baud rate.                              */
 /*                                                        */
-/* LUDICROUS_SPEED:                                       */
-/* 230400 baud :-)                                        */
-/*                                                        */
 /* SOFT_UART:                                             */
 /* Use AVR305 soft-UART instead of hardware UART.         */
 /*                                                        */
@@ -221,10 +218,6 @@ asm("  .section .version\n"
 
 #ifndef LED_START_FLASHES
 #define LED_START_FLASHES 0
-#endif
-
-#ifdef LUDICROUS_SPEED
-#define BAUD_RATE 230400L
 #endif
 
 /* set the UART baud rate defaults */
