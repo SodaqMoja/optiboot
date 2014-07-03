@@ -1,4 +1,6 @@
-/* STK500 constants list, from AVRDUDE */
+/*
+ * STK500 constants list, from AVRDUDE stk500_private.h
+ */
 #define STK_OK              0x10
 #define STK_FAILED          0x11  // Not used
 #define STK_UNKNOWN         0x12  // Not used
