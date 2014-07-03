@@ -59,6 +59,7 @@ LDSECTIONS  = -Wl,--section-start=.text=0x3e00 -Wl,--section-start=.version=0x3f
 
 # default
 fixpath = $(1)
+SH := bash
 
 ifeq ($(ENV), arduino)
 # For Arduino, we assume that we're connected to the optiboot directory
@@ -74,6 +75,7 @@ ifeq ($(OS), windows)
 # is used even if a unix shell is installed (ie as part of WINAVR)
 fixpath = $(subst /,\,$1)
 SHELL = cmd.exe
+SH = sh
 endif
 
 else ifeq ($(ENV), arduinodev)
@@ -470,7 +472,7 @@ FORCE:
 
 baudcheck: FORCE
 	- @$(CC) $(CFLAGS) -E baudcheck.c -o baudcheck.tmp.sh
-	- @bash baudcheck.tmp.sh
+	- @$(SH) baudcheck.tmp.sh
 	- @rm -f baudcheck.tmp.sh
 
 isp: $(TARGET)
