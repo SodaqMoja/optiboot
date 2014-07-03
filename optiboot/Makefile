@@ -266,37 +266,6 @@ atmega328_isp: LFUSE ?= FF
 atmega328_isp: EFUSE ?= FD
 atmega328_isp: isp
 
-atmega644p: TARGET = atmega644p
-atmega644p: MCU_TARGET = atmega644p
-atmega644p: CFLAGS += $(COMMON_OPTIONS) -DBIGBOOT $(LED_CMD)
-atmega644p: AVR_FREQ ?= 16000000L
-atmega644p: LDSECTIONS  = -Wl,--section-start=.text=0xfc00 -Wl,--section-start=.version=0xfffe
-atmega644p: CFLAGS += $(UARTCMD)
-atmega644p: $(PROGRAM)_atmega644p.hex
-atmega644p: $(PROGRAM)_atmega644p.lst
-
-atmega1284: TARGET = atmega1284p
-atmega1284: MCU_TARGET = atmega1284p
-atmega1284: CFLAGS += $(COMMON_OPTIONS) -DBIGBOOT $(LED_CMD)
-atmega1284: AVR_FREQ ?= 16000000L
-atmega1284: LDSECTIONS  = -Wl,--section-start=.text=0x1fc00 -Wl,--section-start=.version=0x1fffe
-atmega1284: CFLAGS += $(UARTCMD)
-atmega1284: $(PROGRAM)_atmega1284p.hex
-atmega1284: $(PROGRAM)_atmega1284p.lst
-
-atmega1284p: atmega1284
-
-atmega1284_isp: atmega1284
-atmega1284_isp: TARGET = atmega1284p
-atmega1284_isp: MCU_TARGET = atmega1284p
-# 1024 byte boot
-atmega1284_isp: HFUSE ?= DE
-# Full Swing xtal (16MHz) 16KCK/14CK+65ms
-atmega1284_isp: LFUSE ?= F7
-# 2.7V brownout
-atmega1284_isp: EFUSE ?= FD
-atmega1284_isp: isp
-
 #Atmega1280
 atmega1280: MCU_TARGET = atmega1280
 atmega1280: CFLAGS += $(COMMON_OPTIONS) -DBIGBOOT $(UART_CMD)
@@ -434,62 +403,6 @@ diecimila_isp: LFUSE ?= FF
 diecimila_isp: EFUSE ?= 04
 diecimila_isp: isp
 
-# Sanguino has a minimum boot size of 1024 bytes, so enable extra functions
-#
-sanguino: TARGET = $@
-sanguino: CHIP = atmega644p
-sanguino:
-	$(MAKE) $(CHIP) AVR_FREQ=16000000L LED=B0
-	mv $(PROGRAM)_$(CHIP).hex $(PROGRAM)_$(TARGET).hex
-	mv $(PROGRAM)_$(CHIP).lst $(PROGRAM)_$(TARGET).lst
-
-sanguino_isp: sanguino
-sanguino_isp: TARGET = sanguino
-sanguino_isp: MCU_TARGET = atmega644p
-# 1024 byte boot
-sanguino_isp: HFUSE ?= DE
-# Full swing xtal (16MHz) 16KCK/14CK+65ms
-sanguino_isp: LFUSE ?= F7
-# 2.7V brownout
-sanguino_isp: EFUSE ?= FD
-sanguino_isp: isp
-
-mighty1284: TARGET = $@
-mighty1284: CHIP = atmega1284p
-mighty1284:
-	$(MAKE) $(CHIP) AVR_FREQ=16000000L LED=B7
-	mv $(PROGRAM)_$(CHIP).hex $(PROGRAM)_$(TARGET).hex
-	mv $(PROGRAM)_$(CHIP).lst $(PROGRAM)_$(TARGET).lst
-
-mighty1284_isp: mighty1284
-mighty1284_isp: TARGET = mighty1284
-mighty1284_isp: MCU_TARGET = atmega1284p
-# 1024 byte boot
-mighty1284_isp: HFUSE ?= DE
-# Full swing xtal (16MHz) 16KCK/14CK+65ms
-mighty1284_isp: LFUSE ?= F7
-# 2.7V brownout
-mighty1284_isp: EFUSE ?= FD
-mighty1284_isp: isp
-
-bobuino: TARGET = $@
-bobuino: CHIP = atmega1284p
-bobuino:
-	$(MAKE) $(CHIP) AVR_FREQ=16000000L LED=B5
-	mv $(PROGRAM)_$(CHIP).hex $(PROGRAM)_$(TARGET).hex
-	mv $(PROGRAM)_$(CHIP).lst $(PROGRAM)_$(TARGET).lst
-
-bobuino_isp: bobuino
-bobuino_isp: TARGET = bobuino
-bobuino_isp: MCU_TARGET = atmega1284p
-# 1024 byte boot
-bobuino_isp: HFUSE ?= DE
-# Full swing xtal (16MHz) 16KCK/14CK+65ms
-bobuino_isp: LFUSE ?= F7
-# 2.7V brownout
-bobuino_isp: EFUSE ?= FD
-bobuino_isp: isp
-
 # MEGA1280 Board (this is different from the atmega1280 chip platform)
 # Mega has a minimum boot size of 1024 bytes, so enable extra functions
 # Note that optiboot does not (can not) work on the MEGA2560
@@ -605,6 +518,13 @@ luminet_isp: LFUSE ?= 62
 # Self-programming enable
 luminet_isp: EFUSE ?= FE
 luminet_isp: isp
+
+
+#
+# Include additional platforms
+#include Makefile.extras
+include Makefile.1284
+#include Makefile.custom
 
 
 #---------------------------------------------------------------------------
