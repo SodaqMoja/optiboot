@@ -329,6 +329,23 @@ void uartDelay() __attribute__ ((naked));
 void appStart(uint8_t rstFlags) __attribute__ ((naked));
 
 /*
+ * RAMSTART should be self-explanatory.  It's bigger on parts with a
+ * lot of peripheral registers.  Let 0x100 be the default
+ * Note that RAMSTART need not be exactly at the start of RAM.
+ */
+#if !defined(RAMSTART)  // newer versions of gcc avr-libc define RAMSTART
+#define RAMSTART 0x100
+#if defined (__AVR_ATmega644P__)
+// correct for a bug in avr-libc
+#undef SIGNATURE_2
+#define SIGNATURE_2 0x0A
+#elif defined(__AVR_ATmega1280__)
+#undef RAMSTART
+#define RAMSTART (0x200)
+#endif
+#endif
+
+/*
  * NRWW memory
  * Addresses below NRWW (Non-Read-While-Write) can be programmed while
  * continuing to run code from flash, slightly speeding up programming
@@ -339,35 +356,21 @@ void appStart(uint8_t rstFlags) __attribute__ ((naked));
  * That's OK.  In fact, you can disable the overlapping processing for
  * a part entirely by setting NRWWSTART to zero.  This reduces code
  * space a bit, at the expense of being slightly slower, overall.
- *
- * RAMSTART should be self-explanatory.  It's bigger on parts with a
- * lot of peripheral registers.  Let 0x100 be the default
- * Note that RAMSTART need not be exactly at the start of RAM.
  */
+
 #if defined(__AVR_ATmega168__)
-#define RAMSTART (0x100)
 #define NRWWSTART (0x3800)
 #elif defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32__)
-#define RAMSTART (0x100)
 #define NRWWSTART (0x7000)
 #elif defined (__AVR_ATmega644P__)
-#define RAMSTART (0x100)
 #define NRWWSTART (0xE000)
-// correct for a bug in avr-libc
-#undef SIGNATURE_2
-#define SIGNATURE_2 0x0A
 #elif defined (__AVR_ATmega1284P__)
-#define RAMSTART (0x100)
 #define NRWWSTART (0xE000)
 #elif defined(__AVR_ATtiny84__)
-#define RAMSTART (0x100)
 #define NRWWSTART (0x0000)
 #elif defined(__AVR_ATmega1280__)
-#define RAMSTART (0x200)
 #define NRWWSTART (0xE000)
 #elif defined(__AVR_ATmega8__) || defined(__AVR_ATmega88__)
-// FIXME.  iom8.h defines RAMSTART as 0x60
-#define RAMSTART (0x100)
 #define NRWWSTART (0x1800)
 #endif
 
