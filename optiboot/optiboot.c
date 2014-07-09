@@ -148,6 +148,24 @@
 /**********************************************************/
 /* Edit History:                                          */
 /*                                                        */
+/* Jun 2014                                               */
+/* 6.0 WestfW: Modularize memory read/write functions     */
+/*             Remove serial/flash overlap                */
+/*              (and all references to NRWWSTART/etc)     */
+/*             Correctly handle pagesize > 255bytes       */
+/*             Add EEPROM support in BIGBOOT (1284)       */
+/*             EEPROM write on small chips now causes err */
+/*             Split Makefile into smaller pieces         */
+/*             Add Wicked devices Wildfire                */
+/*             Move UART=n conditionals into pin_defs.h   */
+/*             Remove LUDICOUS_SPEED option               */
+/*             Replace inline assembler for .version      */
+/*              and add OPTIBOOT_CUSTOMVER for user code  */
+/*             Fix LED value for Bobuino (Makefile)       */
+/*             Make all functions explicitly inline or    */
+/*              noinline, so we fit when using gcc4.8     */
+/*             Change optimization options for gcc4.8     */
+/*             Make ENV=arduino work in 1.5.x trees.      */
 /* May 2014                                               */
 /* 5.0 WestfW: Add support for 1Mbps UART                 */
 /* Mar 2013                                               */
@@ -192,7 +210,7 @@
 /* 4.1 WestfW: put version number in binary.              */
 /**********************************************************/
 
-#define OPTIBOOT_MAJVER 5
+#define OPTIBOOT_MAJVER 6
 #define OPTIBOOT_MINVER 0
 
 /*
@@ -210,6 +228,7 @@ unsigned int __attribute__((section(".version"))) optiboot_version = 256*OPTIBOO
 #include <inttypes.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
+#include <avr/eeprom.h>
 
 /*
  * Note that we use our own version of "boot.h"
@@ -318,12 +337,19 @@ int main(void) __attribute__ ((OS_main)) __attribute__ ((section (".init9")));
 
 void __attribute__((noinline)) putch(char);
 uint8_t __attribute__((noinline)) getch(void);
+uint16_t __attribute__((noinline)) getLen(void);
 static inline void getNch(uint8_t);
+
 void __attribute__((noinline)) verifySpace();
 static inline void flash_led(uint8_t);
-uint8_t getLen();
+
 static inline void watchdogReset();
-void watchdogConfig(uint8_t x);
+void __attribute__((noinline)) watchdogConfig(uint8_t x);
+
+static inline void writebuffer(int8_t memtype, uint8_t *mybuff,
+                               uint16_t address, uint16_t len);
+static inline void read_mem(uint8_t memtype,
+                            uint16_t address, uint16_t len);
 
 #ifdef SOFT_UART
 void uartDelay() __attribute__ ((naked));
@@ -356,6 +382,7 @@ void appStart(uint8_t rstFlags) __attribute__ ((naked));
 #define wdtVect (*(uint16_t*)(RAMSTART+SPM_PAGESIZE*2+6))
 #endif
 
+
 /* main program starts here */
 int main(void) {
   uint8_t ch;
@@ -367,7 +394,7 @@ int main(void) {
    *  necessary, and uses 4 bytes of flash.)
    */
   register uint16_t address = 0;
-  register uint8_t  length;
+  register uint16_t  length;
 
   // After the zero init loop, this is the first code to run.
   //
@@ -392,6 +419,7 @@ int main(void) {
   // Set up Timer 1 for timeout counter
   TCCR1B = _BV(CS12) | _BV(CS10); // div 1024
 #endif
+
 #ifndef SOFT_UART
 #if defined(__AVR_ATmega8__) || defined (__AVR_ATmega32__)
   UCSRA = _BV(U2X); //Double speed mode USART
@@ -476,14 +504,15 @@ int main(void) {
     /* Write memory, length is big endian and is in bytes */
     else if(ch == STK_PROG_PAGE) {
       // PROGRAM PAGE - we support flash programming only, not EEPROM
+      uint8_t desttype;
       uint8_t *bufPtr;
-      uint16_t addrPtr;
+      uint16_t savelength;
 
-      getch();                  /* getlen() */
-      length = getch();
-      getch();
+      length = getLen();
+      savelength = length;
+      desttype = getch();
 
-      // While that is going on, read in page contents
+      // read a page worth of contents
       bufPtr = buff;
       do *bufPtr++ = getch();
       while (--length);
@@ -510,54 +539,19 @@ int main(void) {
       }
 #endif
 
-      // Copy buffer into programming buffer
-      bufPtr = buff;
-      addrPtr = (uint16_t)(void*)address;
-      ch = SPM_PAGESIZE / 2;
-      do {
-        uint16_t a;
-        a = *bufPtr++;
-        a |= (*bufPtr++) << 8;
-        __boot_page_fill_short((uint16_t)(void*)addrPtr,a);
-        addrPtr += 2;
-      } while (--ch);
-
-      // Write from programming buffer
-      __boot_page_write_short((uint16_t)(void*)address);
-      boot_spm_busy_wait();
+      writebuffer(desttype, buff, address, savelength);
 
 
     }
     /* Read memory block mode, length is big endian.  */
     else if(ch == STK_READ_PAGE) {
-      // READ PAGE - we only read flash
-      getch();                  /* getlen() */
-      length = getch();
-      getch();
+      uint8_t desttype;
+      length = getLen();
+      desttype = getch();
 
       verifySpace();
-      do {
-#ifdef VIRTUAL_BOOT_PARTITION
-        // Undo vector patch in bottom page so verify passes
-        if (address == 0)       ch=rstVect & 0xff;
-        else if (address == 1)  ch=rstVect >> 8;
-        else if (address == 8)  ch=wdtVect & 0xff;
-        else if (address == 9) ch=wdtVect >> 8;
-        else ch = pgm_read_byte_near(address);
-        address++;
-#elif defined(RAMPZ)
-        // Since RAMPZ should already be set, we need to use EPLM directly.
-        // Also, we can use the autoincrement version of lpm to update "address"
-        //      do putch(pgm_read_byte_near(address++));
-        //      while (--length);
-        // read a Flash and increment the address (may increment RAMPZ)
-        __asm__ ("elpm %0,Z+\n" : "=r" (ch), "=z" (address): "1" (address));
-#else
-        // read a Flash byte and increment the address
-        __asm__ ("lpm %0,Z+\n" : "=r" (ch), "=z" (address): "1" (address));
-#endif
-        putch(ch);
-      } while (--length);
+
+      read_mem(desttype, address, length);
     }
 
     /* Get device signature bytes  */
@@ -675,6 +669,13 @@ uint8_t getch(void) {
   return ch;
 }
 
+// Read 2 bytes (big-endian) length
+uint16_t getLen(void) {
+  uint8_t b1 = getch();
+  uint8_t b0 = getch();
+  return ((uint16_t)b1 << 8) | b0;
+}
+
 #ifdef SOFT_UART
 // AVR305 equation: #define UART_B_VALUE (((F_CPU/BAUD_RATE)-23)/6)
 // Adding 3 to numerator simulates nearest rounding for more accurate baud rates
@@ -755,4 +756,113 @@ void appStart(uint8_t rstFlags) {
 #endif
     "ijmp\n"
   );
+}
+
+/*
+ * void writebuffer(memtype, buffer, address, length)
+ */
+static inline void writebuffer(int8_t memtype, uint8_t *mybuff,
+                               uint16_t address, uint16_t len)
+{
+    switch (memtype) {
+    case 'E': // EEPROM
+#if defined(SUPPORT_EEPROM) || defined(BIGBOOT)
+        while(len--) {
+            eeprom_write_byte((uint8_t *)(address++), *mybuff++);
+        }
+#else
+        /*
+         * On systems where EEPROM write is not supported, just busy-loop
+         * until the WDT expires, which will eventually cause an error on
+         * host system (which is what it should do.)
+         */
+        while (1)
+            ; // Error: wait for WDT
+#endif
+        break;
+    default:  // FLASH
+        /*
+         * Default to writing to Flash program memory.  By making this
+         * the default rather than checking for the correct code, we save
+         * space on chips that don't support any other memory types.
+         */
+        {
+            // Copy buffer into programming buffer
+            uint8_t *bufPtr = mybuff;
+            uint16_t addrPtr = (uint16_t)(void*)address;
+            uint8_t ch;
+
+            /*
+             * Start the page erase and wait for it to finish.  There
+             * used to be code to do this while receiving the data over
+             * the serial link, but the performance improvement was slight,
+             * and we needed the space back.
+             */
+            __boot_page_erase_short((uint16_t)(void*)address);
+            boot_spm_busy_wait();
+
+            /*
+             * Copy data from the buffer into the flash write buffer.
+             */
+            ch = SPM_PAGESIZE / 2;
+            do {
+                uint16_t a;
+                a = *bufPtr++;
+                a |= (*bufPtr++) << 8;
+                __boot_page_fill_short((uint16_t)(void*)addrPtr,a);
+                addrPtr += 2;
+            } while (--ch);
+
+            /*
+             * Actually Write the buffer to flash (and wait for it to finish.)
+             */
+            __boot_page_write_short((uint16_t)(void*)address);
+            boot_spm_busy_wait();
+#if defined(RWWSRE)
+            // Reenable read access to flash
+            boot_rww_enable();
+#endif
+        } // default block
+        break;
+    } // switch
+}
+
+static inline void read_mem(uint8_t memtype, uint16_t address, uint16_t length)
+{
+    uint8_t ch;
+
+    switch (memtype) {
+
+#if defined(SUPPORT_EEPROM) || defined(BIGBOOT)
+    case 'E': // EEPROM
+        do {
+            putch(eeprom_read_byte((uint8_t *)(address++)));
+        } while (--length);
+        break;
+#endif
+    default:
+        do {
+#ifdef VIRTUAL_BOOT_PARTITION
+        // Undo vector patch in bottom page so verify passes
+            if (address == 0)       ch=rstVect & 0xff;
+            else if (address == 1)  ch=rstVect >> 8;
+            else if (address == 8)  ch=wdtVect & 0xff;
+            else if (address == 9) ch=wdtVect >> 8;
+            else ch = pgm_read_byte_near(address);
+            address++;
+#elif defined(RAMPZ)
+            // Since RAMPZ should already be set, we need to use EPLM directly.
+            // Also, we can use the autoincrement version of lpm to update "address"
+            //      do putch(pgm_read_byte_near(address++));
+            //      while (--length);
+            // read a Flash and increment the address (may increment RAMPZ)
+            __asm__ ("elpm %0,Z+\n" : "=r" (ch), "=z" (address): "1" (address));
+#else
+            // read a Flash byte and increment the address
+            __asm__ ("lpm %0,Z+\n" : "=r" (ch), "=z" (address): "1" (address));
+#endif
+            putch(ch);
+        } while (--length);
+        break;
+    } // switch
 }
