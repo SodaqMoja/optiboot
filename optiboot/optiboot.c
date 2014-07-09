@@ -315,14 +315,16 @@ unsigned int __attribute__((section(".version"))) optiboot_version = 256*OPTIBOO
  */
 
 int main(void) __attribute__ ((OS_main)) __attribute__ ((section (".init9")));
-void putch(char);
-uint8_t getch(void);
-static inline void getNch(uint8_t); /* "static inline" is a compiler hint to reduce code size */
-void verifySpace();
+
+void __attribute__((noinline)) putch(char);
+uint8_t __attribute__((noinline)) getch(void);
+static inline void getNch(uint8_t);
+void __attribute__((noinline)) verifySpace();
 static inline void flash_led(uint8_t);
 uint8_t getLen();
 static inline void watchdogReset();
 void watchdogConfig(uint8_t x);
+
 #ifdef SOFT_UART
 void uartDelay() __attribute__ ((naked));
 #endif
