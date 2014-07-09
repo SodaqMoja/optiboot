@@ -347,35 +347,6 @@ void appStart(uint8_t rstFlags) __attribute__ ((naked));
 #endif
 #endif
 
-/*
- * NRWW memory
- * Addresses below NRWW (Non-Read-While-Write) can be programmed while
- * continuing to run code from flash, slightly speeding up programming
- * time.  Beware that Atmel data sheets specify this as a WORD address,
- * while optiboot will be comparing against a 16-bit byte address.  This
- * means that on a part with 128kB of memory, the upper part of the lower
- * 64k will get NRWW processing as well, even though it doesn't need it.
- * That's OK.  In fact, you can disable the overlapping processing for
- * a part entirely by setting NRWWSTART to zero.  This reduces code
- * space a bit, at the expense of being slightly slower, overall.
- */
-
-#if defined(__AVR_ATmega168__)
-#define NRWWSTART (0x3800)
-#elif defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32__)
-#define NRWWSTART (0x7000)
-#elif defined (__AVR_ATmega644P__)
-#define NRWWSTART (0xE000)
-#elif defined (__AVR_ATmega1284P__)
-#define NRWWSTART (0xE000)
-#elif defined(__AVR_ATtiny84__)
-#define NRWWSTART (0x0000)
-#elif defined(__AVR_ATmega1280__)
-#define NRWWSTART (0xE000)
-#elif defined(__AVR_ATmega8__) || defined(__AVR_ATmega88__)
-#define NRWWSTART (0x1800)
-#endif
-
 /* C zero initialises all global variables. However, that requires */
 /* These definitions are NOT zero initialised, but that doesn't matter */
 /* This allows us to drop the zero init code, saving us memory */
@@ -512,26 +483,13 @@ int main(void) {
       length = getch();
       getch();
 
-      // If we are in RWW section, immediately start page erase
-      if (address < NRWWSTART) __boot_page_erase_short((uint16_t)(void*)address);
-
       // While that is going on, read in page contents
       bufPtr = buff;
       do *bufPtr++ = getch();
       while (--length);
 
-      // If we are in NRWW section, page erase has to be delayed until now.
-      // Todo: Take RAMPZ into account (not doing so just means that we will
-      //  treat the top of both "pages" of flash as NRWW, for a slight speed
-      //  decrease, so fixing this is not urgent.)
-      if (address >= NRWWSTART) __boot_page_erase_short((uint16_t)(void*)address);
-
       // Read command terminator, start reply
       verifySpace();
-
-      // If only a partial page is to be programmed, the erase might not be complete.
-      // So check that here
-      boot_spm_busy_wait();
 
 #ifdef VIRTUAL_BOOT_PARTITION
       if ((uint16_t)(void*)address == 0) {
@@ -568,10 +526,6 @@ int main(void) {
       __boot_page_write_short((uint16_t)(void*)address);
       boot_spm_busy_wait();
 
-#if defined(RWWSRE)
-      // Reenable read access to flash
-      boot_rww_enable();
-#endif
 
     }
     /* Read memory block mode, length is big endian.  */
