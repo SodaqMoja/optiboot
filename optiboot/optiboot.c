@@ -434,6 +434,11 @@ int main(void) {
 #endif
 #endif
 
+#ifdef RS485
+  RS485_DDR |= _BV(RS485);
+  RS485_PORT &= ~_BV(RS485);
+#endif
+
   // Set up watchdog to trigger after 500ms
   watchdogConfig(WATCHDOG_1S);
 
@@ -577,9 +582,31 @@ int main(void) {
 
 void putch(char ch) {
 #ifndef SOFT_UART
+#ifdef RS485
+  uint8_t x;
+  do {
+    x = UART_SRA;
+  } while (!(x & _BV(UDRE0)));
+  // clear transmitted flag
+  x |= _BV(TXC0);
+  UART_SRA = x;
+  // put transceiver to output mode
+  RS485_PORT |= _BV(RS485);
+  // put char
+  UART_UDR = ch;
+  // wait for char transmitted
+  while (!(UART_SRA & _BV(TXC0)));
+  // put transceiver to input mode
+  RS485_PORT &= ~_BV(RS485);
+#else
   while (!(UART_SRA & _BV(UDRE0)));
   UART_UDR = ch;
+#endif
 #else
+#ifdef RS485
+  // put transceiver to output mode
+  RS485_PORT |= _BV(RS485);
+#endif
   __asm__ __volatile__ (
     "   com %[ch]\n" // ones complement, carry set
     "   sec\n"
@@ -602,6 +629,10 @@ void putch(char ch) {
     :
       "r25"
   );
+#ifdef RS485
+  // put transceiver to input mode
+  RS485_PORT &= ~_BV(RS485);
+#endif
 #endif
 }
 

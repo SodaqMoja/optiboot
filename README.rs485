@@ -1,0 +1,6 @@
+RS-485 mode added. Direction pin is defined at compile time similar to
+led by means of `RS485=<PIN>` variable.
+
+To create a bootloader with RS-485 support use the following command:
+
+$ make -C optiboot BAUD_RATE=38400 RS485=D4 clean atmega328_pro8
