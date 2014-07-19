@@ -781,6 +781,7 @@
 #error -------------------------------------------
 #endif
 
+#if RS485
 #if RS485 == B0
 #undef RS485
 #define RS485_DDR     DDRB
@@ -1324,4 +1325,5 @@
 #error -------------------------------------------
 #error Unrecognized RS485 name.  Should be like "B5"
 #error -------------------------------------------
+#endif
 #endif
